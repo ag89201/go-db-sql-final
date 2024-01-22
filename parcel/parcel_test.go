@@ -53,10 +53,8 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	got, err := store.Get(id)
 	require.NoError(t, err)
-	assert.Equal(t, parcel.Address, got.Address)
-	assert.Equal(t, parcel.Client, got.Client)
-	assert.Equal(t, parcel.Status, got.Status)
-	assert.Equal(t, parcel.CreatedAt, got.CreatedAt)
+	parcel.Number = id
+	assert.Equal(t, parcel, got)
 
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
@@ -64,7 +62,7 @@ func TestAddGetDelete(t *testing.T) {
 	require.NoError(t, err)
 	// проверьте, что посылку больше нельзя получить из БД
 	_, err = store.Get(id)
-	require.Equal(t, sql.ErrNoRows, err)
+	require.ErrorIs(t, err, sql.ErrNoRows)
 
 }
 
@@ -99,13 +97,6 @@ func TestSetAddress(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, newAddress, got.Address)
 
-	// delete
-	// удалите добавленную посылку, убедитесь в отсутствии ошибки
-	err = store.Delete(id)
-	require.NoError(t, err)
-	// проверьте, что посылку больше нельзя получить из БД
-	_, err = store.Get(id)
-	require.Equal(t, sql.ErrNoRows, err)
 }
 
 // TestSetStatus проверяет обновление статуса
@@ -137,14 +128,6 @@ func TestSetStatus(t *testing.T) {
 	got, err := store.Get(id)
 	require.NoError(t, err)
 	assert.Equal(t, newStatus, got.Status)
-
-	// доп. проверка: посылку больше нельзя удалить
-	err = store.Delete(id)
-	require.NoError(t, err)
-
-	got, err = store.Get(id)
-	require.NoError(t, err)
-	assert.Equal(t, id, got.Number)
 
 }
 

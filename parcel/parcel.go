@@ -45,7 +45,7 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 }
 
 func (s ParcelStore) Get(number int) (Parcel, error) {
-	row := s.db.QueryRow("SELECT * FROM parcel WHERE number = :number", sql.Named("number", number))
+	row := s.db.QueryRow("SELECT number, client, status, address, created_at FROM parcel WHERE number = :number", sql.Named("number", number))
 
 	p := Parcel{}
 	err := row.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
@@ -59,7 +59,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 
 func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 
-	rows, err := s.db.Query("SELECT * FROM parcel WHERE client = :client", sql.Named("client", client))
+	rows, err := s.db.Query("SELECT number, client, status, address, created_at FROM parcel WHERE client = :client", sql.Named("client", client))
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +73,10 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 			return nil, err
 		}
 		res = append(res, p)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return res, nil
@@ -88,14 +92,15 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 
 func (s ParcelStore) SetAddress(number int, address string) error {
 	// менять адрес можно только если значение статуса registered
-	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number AND status LIKE '%registered%'", sql.Named("address", address), sql.Named("number", number))
+
+	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number AND status=:status", sql.Named("address", address), sql.Named("number", number), sql.Named("status", ParcelStatusRegistered))
 	return err
 }
 
 func (s ParcelStore) Delete(number int) error {
 	// удалять строку можно только если значение статуса registered
 
-	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status LIKE '%registered%'", sql.Named("number", number))
+	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status=:status", sql.Named("number", number), sql.Named("status", ParcelStatusRegistered))
 
 	return err
 }

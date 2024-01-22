@@ -3,11 +3,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"go-db-sql-final/parcel"
+	"go-db-sql-final/parcelservice"
 
 	_ "modernc.org/sqlite"
-
-	p "go-db-sql-final/parcel"
-	s "go-db-sql-final/parcelservice"
 )
 
 func main() {
@@ -19,8 +18,8 @@ func main() {
 	}
 	defer db.Close()
 
-	store := p.NewParcelStore(db)
-	service := s.NewParcelService(store)
+	store := parcel.NewParcelStore(db)
+	service := parcelservice.NewParcelService(store)
 
 	// регистрация посылки
 	client := 1
